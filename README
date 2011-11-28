@@ -1,0 +1,58 @@
+NAME
+  wrap
+
+SYNOPSIS
+  non-sucking :before and :after filers for any ruby class
+
+DESCRIPTION
+  yes yes, active_support does this.  but crapily.  with actice_support you'll
+  need to do this
+
+
+    class Record
+      include ActiveSupport::Callbacks
+      define_callbacks :save
+
+      def save
+        run_callbacks :save do
+          puts "- save"
+        end
+      end
+    end
+
+  but hey, if a subclass forgets to call 'super' or doesn't manually run
+  'run_callbacks' the codez are *screwed*.  that sux.  why not this?
+
+
+    class Record
+      include Wrap
+
+      wrap :save
+    end
+
+
+  yes, it's that simple.  you can now do
+
+    class SubRecord < Record
+      before :save do
+        special_sauce
+      end
+      
+      def save
+        no_special_sauce
+      end
+    end
+
+  did you get that?  the :before and :after hooks will be called no matter
+  what the subclass does.  the method will be wrapped, period.  no special
+  work required.  of course, if the sublcass messes with 'method_added' their
+  will be hell to pay.  that's the price for simplicity.
+
+  the callbacks are very close, but not identical to active_supports.  you can
+  return 'false' to halt the chain, but you can also simply call 'halt!'.
+  another neat trick is that :before callbacks will be called with the
+  arguments to the wrapped method itself iff possible and :after callbacks
+  will be called with the result of the wrapped method, iff possible.
+
+  the test suite reads pretty damn clean.  have a go.
+
