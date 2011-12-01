@@ -3,13 +3,14 @@
 
 Gem::Specification::new do |spec|
   spec.name = "wrap"
-  spec.version = "0.4.2"
+  spec.version = "0.5.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "wrap"
   spec.description = "description: wrap kicks the ass"
 
   spec.files =
-["Rakefile",
+["README",
+ "Rakefile",
  "lib",
  "lib/wrap",
  "lib/wrap.rb",

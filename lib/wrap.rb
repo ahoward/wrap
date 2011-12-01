@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Version = '0.4.3' unless defined?(Version)
+    Version = '0.5.0' unless defined?(Version)
 
     def version
       Version
@@ -16,31 +16,13 @@
         'map'        =>  [ 'map'         , ' >= 4.7.1'   ]
       }
     end
-
-    def libdir(*args, &block)
-      @libdir ||= File.expand_path(__FILE__).sub(/\.rb$/,'')
-      args.empty? ? @libdir : File.join(@libdir, *args)
-    ensure
-      if block
-        begin
-          $LOAD_PATH.unshift(@libdir)
-          block.call()
-        ensure
-          $LOAD_PATH.shift()
-        end
-      end
-    end
-
-    def load(*libs)
-      libs = libs.join(' ').scan(/[^\s+]+/)
-      Wrap.libdir{ libs.each{|lib| Kernel.load(lib) } }
-    end
   end
 
 ##
 #
   begin
     require 'rubygems'
+    Wrap.dependencies.each{|name, dependency| gem(*dependency)}
   rescue LoadError
     nil
   end
@@ -82,15 +64,8 @@
     end
 
     ClassMethods = proc do
-      def wrap(name, *args, &block)
-        define_method(name){} unless method_defined?(name)
-
-        wrap!(name)
-      end
-
       def method_added(name)
         return super if wrapping?
-
         begin
           super
         ensure
@@ -98,18 +73,43 @@
         end
       end
 
+      def include(other)
+        super
+      ensure
+        other.instance_methods.each do |name|
+          if wrapped?(name)
+            begin
+              remove_method(name)
+            rescue NameError
+              nil
+            end
+            rewrap!(name)
+          end
+        end
+      end
+
+      def wrap(name, *args, &block)
+        define_method(name){} unless method_defined?(name)
+        wrap!(name)
+      end
+
       def wrapped?(name)
         method_defined?("wrapped_#{ name }")
       end
 
       def wrap!(name)
+        name = name.to_s
+        method = instance_method(name)
+
         wrapping! name do
           name = name.to_s
           wrapped_name = "wrapped_#{ name }"
 
-          method = instance_method(name)
-
-          remove_method(wrapped_name) if method_defined?(wrapped_name)
+          begin
+            remove_method(wrapped_name)
+          rescue NameError
+            nil
+          end
 
           alias_method(wrapped_name, name)
 

@@ -207,6 +207,40 @@ Testing Wrap do
     end
   end
 
+##
+#
+  testing 'that methods added via module inclusion preserve wrapping too' do
+    c =
+      assert do
+        wrapped_class do
+          define_method(:foo){ accum.push(:original); accum }
+
+          wrap :foo
+
+          before(:foo){ accum.push(:before) }
+          after(:foo){ accum.push(:after) }
+        end
+      end
+
+    assert do
+      o = c.new
+      o.foo()
+      assert o.accum === [:before, :original, :after]
+    end
+
+    m =
+      Module.new do
+        define_method(:foo){ accum.push(:mixin); accum }
+      end
+
+    c.send(:include, m)
+
+    assert do
+      o = c.new
+      o.foo()
+      assert o.accum === [:before, :mixin, :after]
+    end
+  end
 
 private
   def wrapped_class(&block)
