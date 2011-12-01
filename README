@@ -2,10 +2,10 @@ NAME
   wrap
 
 SYNOPSIS
-  non-sucking :before and :after filers for any ruby class
+  non-sucking :before and :after filters for any ruby class
 
 DESCRIPTION
-  yes yes, active_support does this.  but crapily.  with actice_support you'll
+  yes yes, active_support does this.  but crapily.  with active_support you'll
   need to do this
 
 
@@ -55,4 +55,3 @@ DESCRIPTION
   will be called with the result of the wrapped method, iff possible.
 
   the test suite reads pretty damn clean.  have a go.
-
