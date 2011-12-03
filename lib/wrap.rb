@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Version = '0.5.0' unless defined?(Version)
+    Version = '1.0.0' unless defined?(Version)
 
     def version
       Version
@@ -156,13 +156,34 @@
       end
 
       def before(name, *args, &block)
+        wrap(name) unless wrapped?(name)
+        name = wrap_expand_aliases(name)
         cb = initialize_callbacks!(name)
         cb.before.push(args.shift || block)
       end
 
       def after(name, *args, &block)
+        wrap(name) unless wrapped?(name)
+        name = wrap_expand_aliases(name)
         cb = initialize_callbacks!(name)
         cb.after.push(args.shift || block)
+      end
+
+      def wrap_aliases
+        @@wrap_aliases ||= Hash.new
+      end
+
+      def wrap_alias(dst, src)
+        wrap_aliases[dst.to_s] = src.to_s
+      end
+
+      def wrap_expand_aliases(name)
+        name = name.to_s
+        loop do
+          break unless wrap_aliases.has_key?(name)
+          name = wrap_aliases[name]
+        end
+        name
       end
     end
 
@@ -197,7 +218,7 @@
         list = []
 
         self.class.ancestors.each do |ancestor|
-          break unless ancestor.respond_to?(:callbacks)
+          next unless ancestor.respond_to?(:callbacks)
 
           if ancestor.callbacks.is_a?(Map) and ancestor.callbacks[name].is_a?(Map)
             callbacks = ancestor.callbacks[name][which]

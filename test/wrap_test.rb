@@ -64,6 +64,25 @@ Testing Wrap do
 
 ##
 #
+  testing 'that :before and :after will auto-wrap methods iff needed' do
+    assert do
+      wrapped_class do
+        before(:foo){ accum.push(:before) }
+        after(:foo){ accum.push(:after) }
+
+        define_method(:foo){ accum.push(42) }
+
+        assert {
+          c = new
+          c.foo()
+          c.accum == [:before, 42, :after]
+        }
+      end
+    end
+  end
+
+##
+#
   testing 'that callbacks are halted with "false" iff they return "false"' do
     assert do
       wrapped_class do
@@ -239,6 +258,48 @@ Testing Wrap do
       o = c.new
       o.foo()
       assert o.accum === [:before, :mixin, :after]
+    end
+  end
+
+
+##
+#
+  testing 'that wrap aliases can be defined as syntax sugar' do
+    c =
+      assert do
+        wrapped_class do
+          define_method(:run_validations){ accum.push(:during); accum }
+
+          wrap :run_validations
+        end
+      end
+
+    assert do
+      o = c.new
+      o.run_validations()
+      o.accum
+      assert o.accum === [:during]
+    end
+
+    c.class_eval do
+      wrap_alias :validation, :run_validations
+
+      before(:validation){ accum.push(:before) }
+      after(:validation){ accum.push(:after) }
+    end
+
+    assert do
+      o = c.new
+      o.run_validations()
+      o.accum
+      assert o.accum === [:before, :during, :after]
+    end
+
+    assert do
+      o = Class.new(c).new
+      o.run_validations()
+      o.accum
+      assert o.accum === [:before, :during, :after]
     end
   end
 
