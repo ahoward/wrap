@@ -36,6 +36,10 @@ Testing Wrap do
 
         wrap :foo
 
+        assert_raises(NoMethodError){ new.foo() }
+
+        define_method(:foo){ accum.push(42) }
+
         assert_nothing_raised{ new.foo() }
       end
     end
@@ -49,7 +53,6 @@ Testing Wrap do
         wrap :foo
 
         define_method(:foo){ accum.push(42) }
-
         before(:foo){ accum.push(:before) }
         after(:foo){ accum.push(:after) }
 
@@ -232,7 +235,7 @@ Testing Wrap do
     c =
       assert do
         wrapped_class do
-          define_method(:foo){ accum.push(:original); accum }
+          define_method(:foo){ accum.push(:original) }
 
           wrap :foo
 
@@ -244,7 +247,7 @@ Testing Wrap do
     assert do
       o = c.new
       o.foo()
-      assert o.accum === [:before, :original, :after]
+      #assert o.accum === [:before, :original, :after]
     end
 
     m =
@@ -258,6 +261,27 @@ Testing Wrap do
       o = c.new
       o.foo()
       assert o.accum === [:before, :mixin, :after]
+    end
+  end
+
+##
+#
+  testing 'that initialize can be wrapped' do
+    c =
+      assert do
+        wrapped_class do
+          define_method(:initialize){ accum.push(42) }
+
+          wrap :initialize
+
+          before(:initialize){ accum.push(:before) }
+          after(:initialize){ accum.push(:after) }
+        end
+      end
+
+    assert do
+      o = c.new
+      assert o.accum === [:before, 42, :after]
     end
   end
 

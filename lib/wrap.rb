@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Version = '1.0.0' unless defined?(Version)
+    Version = '1.1.0' unless defined?(Version)
 
     def version
       Version
@@ -69,7 +69,7 @@
         begin
           super
         ensure
-          rewrap!(name) if wrapped?(name)
+          wrap!(name) if wrapped?(name)
         end
       end
 
@@ -83,18 +83,35 @@
             rescue NameError
               nil
             end
-            rewrap!(name)
+            wrap!(name)
           end
         end
       end
 
       def wrap(name, *args, &block)
-        define_method(name){} unless method_defined?(name)
-        wrap!(name)
+        wrapped!(name)
+
+        wrap!(name) if
+          begin
+            instance_method(name)
+            true
+          rescue NameError
+            false
+          end
+      end
+
+      def wrapped!(name)
+        name = name.to_s
+        wrapped.push(name) unless wrapped.include?(name)
+        name
+      end
+
+      def wrapped
+        @wrapped ||= []
       end
 
       def wrapped?(name)
-        method_defined?("wrapped_#{ name }")
+        ancestors.any?{|ancestor| ancestor.respond_to?(:wrapped) and ancestor.wrapped.include?(name.to_s)}
       end
 
       def wrap!(name)
@@ -115,10 +132,6 @@
 
           module_eval(Wrap.code_for(name))
         end
-      end
-
-      def rewrap!(name)
-        wrap!(name)
       end
 
       def wrapping!(name, &block)
