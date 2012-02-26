@@ -5,10 +5,10 @@
 ##
 #
   class << Wrap
-    Version = '1.2.0' unless defined?(Version)
+    Wrap::Version = '1.3.0' unless defined?(Wrap::Version)
 
     def version
-      Version
+      Wrap::Version
     end
 
     def dependencies
