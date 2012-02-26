@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Wrap::Version = '1.3.0' unless defined?(Wrap::Version)
+    Wrap::Version = '1.4.0' unless defined?(Wrap::Version)
 
     def version
       Wrap::Version
@@ -41,19 +41,40 @@
       other.send(:class_eval, &InstanceMethods)
     end
 
-    def Wrap.code_for(name, arity)
-      if arity <= 0
-        argv = "*argv"
-        argv_array = "argv"
-      else
-        argv = Array.new(arity){|i| "arg#{ i }"}.join(', ')
-        argv_array = argv
+    def Wrap.code_for(method)
+      name = method.name.to_s
+      arity = method.arity
+
+      case
+        when arity == 0
+          signature = <<-__.strip
+            def #{ name }(&block)
+              args = []
+          __
+
+        when arity < 0
+          argv = Array.new(arity.abs - 1){|i| "arg#{ i }"}
+          argv.push('*args')
+          argv = argv.join(', ')
+
+          signature = <<-__.strip
+            def #{ name }(#{ argv }, &block)
+              args = [#{ argv }]
+          __
+
+        when arity > 0
+          argv = Array.new(arity){|i| "arg#{ i }"}
+          argv = argv.join(', ')
+
+          signature = <<-__.strip
+            def #{ name }(#{ argv }, &block)
+              args = [#{ argv }]
+          __
       end
 
       code =
         <<-__
-          def #{ name }(#{ argv }, &block)
-            args = #{ argv_array }
+          #{ signature.strip }
              
             if running_callbacks?(#{ name.inspect })
               return wrapped_#{ name }(*args, &block)
@@ -128,6 +149,7 @@
       def wrap!(name)
         name = name.to_s
         method = instance_method(name)
+        arity = method.arity
 
         wrapping! name do
           name = name.to_s
@@ -141,7 +163,7 @@
 
           alias_method(wrapped_name, name)
 
-          module_eval(Wrap.code_for(name, method.arity))
+          module_eval(Wrap.code_for(method))
         end
       end
 

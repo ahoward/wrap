@@ -329,7 +329,7 @@ Testing Wrap do
 
 ##
 #
-  testing 'that wrapping preserves method arity' do
+  testing 'that wrapping preserves method arity like a boss' do
     assert do
       wrapped_class do
         def foo(x, y) [x, y] end
@@ -341,6 +341,18 @@ Testing Wrap do
 
         assert{ instance_method(:foo).arity == 2 }
         assert{ new.foo(4, 2) == [4, 2] }
+
+        def foo() end
+        assert{ instance_method(:foo).arity == 0 }
+
+        def foo(x) end
+        assert{ instance_method(:foo).arity == 1 }
+
+        def foo(*x) end
+        assert{ instance_method(:foo).arity == -1 }
+
+        def foo(x, *y) end
+        assert{ instance_method(:foo).arity == -2 }
       end
     end
   end
