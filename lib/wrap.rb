@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Version = '1.1.0' unless defined?(Version)
+    Version = '1.2.0' unless defined?(Version)
 
     def version
       Version
@@ -41,26 +41,37 @@
       other.send(:class_eval, &InstanceMethods)
     end
 
-    def Wrap.code_for(name)
-      <<-__
-        def #{ name }(*args, &block)
-          if running_callbacks?(#{ name.inspect })
-            return wrapped_#{ name }(*args, &block)
-          end
+    def Wrap.code_for(name, arity)
+      if arity <= 0
+        argv = "*argv"
+        argv_array = "argv"
+      else
+        argv = Array.new(arity){|i| "arg#{ i }"}.join(', ')
+        argv_array = argv
+      end
 
-          running_callbacks(#{ name.inspect }) do
-            catch(:halt) do
-              return false unless run_callbacks(:before, #{ name.inspect }, args)
+      code =
+        <<-__
+          def #{ name }(#{ argv }, &block)
+            args = #{ argv_array }
+             
+            if running_callbacks?(#{ name.inspect })
+              return wrapped_#{ name }(*args, &block)
+            end
 
-              begin
-                result = wrapped_#{ name }(*args, &block)
-              ensure
-                run_callbacks(:after, #{ name.inspect }, [result]) unless $!
+            running_callbacks(#{ name.inspect }) do
+              catch(:halt) do
+                return false unless run_callbacks(:before, #{ name.inspect }, args)
+
+                begin
+                  result = wrapped_#{ name }(*args, &block)
+                ensure
+                  run_callbacks(:after, #{ name.inspect }, [result]) unless $!
+                end
               end
             end
           end
-        end
-      __
+        __
     end
 
     ClassMethods = proc do
@@ -130,7 +141,7 @@
 
           alias_method(wrapped_name, name)
 
-          module_eval(Wrap.code_for(name))
+          module_eval(Wrap.code_for(name, method.arity))
         end
       end
 
