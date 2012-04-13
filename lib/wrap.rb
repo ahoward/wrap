@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Wrap::Version = '1.4.0' unless defined?(Wrap::Version)
+    Wrap::Version = '1.5.0' unless defined?(Wrap::Version)
 
     def version
       Wrap::Version
@@ -75,14 +75,14 @@
       code =
         <<-__
           #{ signature.strip }
-             
+           
             if running_callbacks?(#{ name.inspect })
               return wrapped_#{ name }(*args, &block)
             end
 
             running_callbacks(#{ name.inspect }) do
               catch(:halt) do
-                return false unless run_callbacks(:before, #{ name.inspect }, args)
+                return false if run_callbacks(:before, #{ name.inspect }, args)==false
 
                 begin
                   result = wrapped_#{ name }(*args, &block)
