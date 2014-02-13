@@ -6,7 +6,7 @@ Gem::Specification::new do |spec|
   spec.version = "1.5.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "wrap"
-  spec.description = "description: wrap kicks the ass"
+  spec.description = "non-sucky :before and :after callbacks for any ruby class"
 
   spec.files =
 ["README",
