@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Wrap::Version = '1.5.0' unless defined?(Wrap::Version)
+    Wrap::Version = '1.5.1' unless defined?(Wrap::Version)
 
     def version
       Wrap::Version
@@ -15,6 +15,10 @@
       {
         'map'        =>  [ 'map'         , ' >= 4.7.1'   ]
       }
+    end
+
+    def description
+      'non-sucking :before and :after filters for any ruby class'
     end
   end
 
