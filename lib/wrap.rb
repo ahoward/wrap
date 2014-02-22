@@ -5,7 +5,7 @@
 ##
 #
   class << Wrap
-    Wrap::Version = '1.5.1' unless defined?(Wrap::Version)
+    Wrap::Version = '1.5.2' unless defined?(Wrap::Version)
 
     def version
       Wrap::Version

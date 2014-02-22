@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "wrap"
-  spec.version = "1.5.1"
+  spec.version = "1.5.2"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "wrap"
   spec.description = "non-sucking :before and :after filters for any ruby class"
@@ -25,8 +25,9 @@ Gem::Specification::new do |spec|
 
   spec.test_files = nil
 
-### spec.add_dependency 'lib', '>= version'
-#### spec.add_dependency 'map'
+  
+    spec.add_dependency(*["map", " >= 4.7.1"])
+  
 
   spec.extensions.push(*[])
 
